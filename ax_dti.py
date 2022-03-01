@@ -1,7 +1,7 @@
 import numpy as np
 import sys, os
 
-def dti_calc(index_mask,signal_log,bval_mat,dt,fa,md,eigval,eigvec):
+def dti_calc(index_mask,signal_log,bval_mat,dt,fa,md,eigvec):
     for i in index_mask:
         signal_log_i = -1*(signal_log[i,:].squeeze()) #Zi
         signal_log_i_norm = np.linalg.lstsq(bval_mat,signal_log_i[np.newaxis].T,rcond=None)[0]
@@ -96,7 +96,7 @@ def dti(bval,bvec,data,bvalue,mask,parallel_processing=True):
         #pool = Pool(os.cpu_count())
         #pool.map(dti_func,input_data)
     else:
-        dt,fa,md,eigvec = dti_calc(index_mask, signal_log, bval_mat, dt, fa,md, eigval, eigvec)
+        dt,fa,md,eigvec = dti_calc(index_mask, signal_log, bval_mat, dt, fa,md,eigvec)
 
     dt = np.reshape(dt, (x_len, y_len, z_len, -1))
     fa = np.reshape(fa, (x_len, y_len, z_len))

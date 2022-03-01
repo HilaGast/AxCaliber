@@ -1,9 +1,13 @@
 import numpy as np
 
-def simulate_charmed_main(rdata, scan_param, affine, fa1000, dt1000, eigvec1000, grad_dirs, mask,add_vals, gamma_dist, bval, md1000):
 
-    rb0_data = rdata[:,:,:, scan_param['nb0']] #B0s
+def simulate_charmed_main(data, scan_param, affine, fa1000, dt1000, eigvec1000, grad_dirs, mask,add_vals, gamma_dist, bval, md1000):
+    from AxCaliber.AxCaliber_main import diff_data_registration
 
+    b0_data = data[:,:,:, scan_param['nb0']] #B0s
+    bvec0 = grad_dirs[scan_param['nb0'],:]
+    bval0 = bval[scan_param['nb0']]
+    rb0_data = diff_data_registration(b0_data, affine, bvec0, bval0, scan_param['big_delta'],scan_param['small_delta'])[0]
     b0_map = np.mean(rb0_data, axis=3)
 
     dwi_simulates = simchm(b0_map, fa1000, dt1000, eigvec1000, grad_dirs, mask, scan_param, add_vals, gamma_dist, bval, md1000)
@@ -21,7 +25,7 @@ def simulate_charmed_main(rdata, scan_param, affine, fa1000, dt1000, eigvec1000,
 
 
 def simchm(b0_map,fa,dt,eigvec, grad_dirs, mask, scan_param, add_vals, gamma_dist, bval, md):
-    from AxCaliber_main import cart2sph
+    from AxCaliber.AxCaliber_main import cart2sph
 
     x_len, y_len, z_len = np.shape(mask)
     vec_len = x_len*y_len*z_len
