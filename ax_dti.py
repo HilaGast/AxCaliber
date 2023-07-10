@@ -1,7 +1,7 @@
 import numpy as np
 import sys, os
 
-def dti_calc(index_mask,signal_log,bval_mat,dt,fa,md,eigvec):
+def dti_calc(index_mask,signal_log,bval_mat,dt,fa,md,eigvec, eigval):
     for i in index_mask:
         signal_log_i = -1*(signal_log[i,:].squeeze()) #Zi
         signal_log_i_norm = np.linalg.lstsq(bval_mat,signal_log_i[np.newaxis].T,rcond=None)[0]
@@ -13,7 +13,7 @@ def dti_calc(index_mask,signal_log,bval_mat,dt,fa,md,eigvec):
         eigen_val_i = eigen_val_i.squeeze()
         eigen_vec_i = eigen_vec_i[:,index]
         eigen_vec_i = eigen_vec_i.squeeze()
-        eigen_vec_i_org = eigen_vec_i
+        eigen_val_i_org = eigen_val_i
 
         if (eigen_val_i < 0).all():
             eigen_val_i=np.abs(eigen_val_i)
@@ -25,12 +25,13 @@ def dti_calc(index_mask,signal_log,bval_mat,dt,fa,md,eigvec):
         fa_i = np.sqrt(1.5) * (np.sqrt((eigen_val_i[0] - md_i)**2 + (eigen_val_i[1] - md_i)**2 + (eigen_val_i[2] - md_i)**2) / np.sqrt(eigen_val_i[0]**2 + eigen_val_i[1]**2 + eigen_val_i[2]**2));
 
         fa[i] = fa_i
-        eigvec[i,:] = eigen_vec_i[:, -1]*eigen_vec_i_org[-1]
+        eigvec[i,:] = eigen_vec_i[:, -1] * eigen_val_i_org[-1]
+        eigval[i,:] = eigen_val_i
         md[i] = md_i
         dt_i = np.reshape(dt_i,-1)
         dt[i,:]=[dt_i[0],dt_i[1],dt_i[2],dt_i[4],dt_i[5],dt_i[8]]
 
-    return dt,fa,md,eigvec
+    return dt,fa,md,eigvec, eigval
 
 
 def dti(bval,bvec,data,bvalue,mask,parallel_processing=True):
@@ -96,14 +97,15 @@ def dti(bval,bvec,data,bvalue,mask,parallel_processing=True):
         #pool = Pool(os.cpu_count())
         #pool.map(dti_func,input_data)
     else:
-        dt,fa,md,eigvec = dti_calc(index_mask, signal_log, bval_mat, dt, fa,md,eigvec)
+        dt,fa,md,eigvec, eigval = dti_calc(index_mask, signal_log, bval_mat, dt, fa,md,eigvec, eigval)
 
     dt = np.reshape(dt, (x_len, y_len, z_len, -1))
     fa = np.reshape(fa, (x_len, y_len, z_len))
     md = np.reshape(md, (x_len, y_len, z_len))
     eigvec = np.reshape(eigvec, (x_len, y_len, z_len, -1))
+    eigval = np.reshape(eigval, (x_len, y_len, z_len, -1))
 
-    return fa, md, dt, eigvec
+    return fa, md, dt, eigvec, eigval
 
 
 

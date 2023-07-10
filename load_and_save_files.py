@@ -11,10 +11,26 @@ def save_nifti(fname,img,affine):
 
 def load_diff_files(subj_folder, file_names):
     from dipy.io import read_bvals_bvecs
+    '''
+    :param subj_folder: str, diffusion files path
+    :param file_names: dict of str, contains fields of diffusion file names, without file type: 
+                "data" - diffusion scan (.nii file), 
+                "bval" - bval file (.bval file),
+                "bvec" - bvec file (.bvec file)
+                "mask" - mask file, binary representation of brain-only voxels location (excluding background).
+    
+    :return: 
+        data, ndarray, 4D diffusion scan
+        affine, (4,4) ndarray, affine matrix
+        info_nii, Nifti1Header
+        bval, (v,) ndarray (v is the number of volumes) 
+        bvec, (v,3) ndarray
+        mask, ndarray, binary representation of brain-only voxels location (excluding background)
+    '''
 
     # Load diff nii file:
     diff_file = nib.load(os.path.join(subj_folder,file_names['data']))
-    diff_img = diff_file.get_fdata()  # i1
+    diff_img = diff_file.get_fdata()
     info_nii = diff_file.header
     data = np.asarray(diff_img, dtype='float64')
     data[data < 0] = 0
